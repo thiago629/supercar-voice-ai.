@@ -1,0 +1,482 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="Supercar Voice AI: asistente de IA 24/7 para concesionarios de lujo. Atiende WhatsApp, web y teléfono y agenda pruebas de conducción.">
+<title>Supercar Voice AI</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,opsz,wght@0,6..96,400;0,6..96,500;1,6..96,400;1,6..96,500&family=Manrope:wght@400;500;600;700&family=Syncopate:wght@400;700&display=swap">
+<style>
+/* Layout: the real walkthrough film is scrubbed frame by frame by the scroll, behind a five-sector "lap"; solid editorial sections follow once the lap ends. Single dark world by design. */
+:root{
+  --obsidian:#0b0a0d;
+  --graphite:#16141a;
+  --stone:#221f26;
+  --ivory:#f1ebe1;
+  --mist:#a39aa6;
+  --gold:#d2ad66;
+  --gold-deep:#9c7a3c;
+  --rosso:#c8162f;
+  --ok:#5fbf8a;
+  --line:rgba(241,235,225,.12);
+  --display:"Bodoni Moda","Didot","Bodoni 72",Georgia,serif;
+  --body:"Manrope","Helvetica Neue",Arial,system-ui,sans-serif;
+  --wide:"Syncopate","Eurostile","Arial Black",system-ui,sans-serif;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+body{background:var(--obsidian);color:var(--ivory);font-family:var(--body);font-size:16px;line-height:1.6;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:30;background:var(--obsidian)}
+a{color:inherit}
+:focus-visible{outline:2px solid var(--gold);outline-offset:3px}
+
+/* ---------- film stage ---------- */
+#stage{position:fixed;inset:0;z-index:0;background:var(--obsidian) url("f/001.jpg") center/cover no-repeat}
+#film{display:block;width:100%;height:100%}
+#shade{position:fixed;inset:0;z-index:1;pointer-events:none;
+  background:linear-gradient(90deg,rgba(8,7,10,.72) 0%,rgba(8,7,10,.25) 42%,rgba(8,7,10,0) 65%),
+             linear-gradient(0deg,rgba(8,7,10,.55) 0%,rgba(8,7,10,0) 30%),
+             linear-gradient(180deg,rgba(8,7,10,.55) 0%,rgba(8,7,10,0) 18%);transition:background .4s}
+body.shade-right #shade{background:linear-gradient(270deg,rgba(8,7,10,.72) 0%,rgba(8,7,10,.25) 42%,rgba(8,7,10,0) 65%),linear-gradient(0deg,rgba(8,7,10,.55) 0%,rgba(8,7,10,0) 30%),linear-gradient(180deg,rgba(8,7,10,.55) 0%,rgba(8,7,10,0) 18%)}
+.loader{position:fixed;left:max(16px,env(safe-area-inset-left,0px));bottom:calc(16px + env(safe-area-inset-bottom,0px));z-index:21;font-family:var(--wide);font-size:9px;letter-spacing:.26em;text-transform:uppercase;color:var(--mist);transition:opacity .6s}
+.loader.done{opacity:0}
+
+/* ---------- HUD ---------- */
+.hud{position:fixed;top:0;left:0;right:0;z-index:20;display:flex;align-items:center;justify-content:space-between;gap:16px;
+  padding-top:calc(14px + env(safe-area-inset-top,0px));padding-bottom:14px;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));
+  transition:opacity .4s ease}
+.wordmark{font-family:var(--wide);font-weight:700;font-size:13px;letter-spacing:.32em;text-transform:uppercase;text-decoration:none;white-space:nowrap}
+.wordmark b{color:var(--gold);font-weight:700}
+.hud-right{display:flex;align-items:center;gap:18px}
+.sector-label{font-family:var(--wide);font-size:10px;letter-spacing:.28em;text-transform:uppercase;color:var(--mist);white-space:nowrap}
+.sector-label span{color:var(--ivory)}
+.hud-cta{font-weight:600;font-size:13px;text-decoration:none;padding:9px 16px;border:1px solid var(--gold);color:var(--ivory);border-radius:2px;white-space:nowrap;background:rgba(11,10,13,.35);backdrop-filter:blur(6px)}
+.hud-cta:hover{background:var(--gold);color:var(--obsidian)}
+.lap{position:fixed;left:0;right:0;bottom:0;z-index:20;height:3px;background:rgba(241,235,225,.1);transition:opacity .4s}
+.lap i{display:block;height:3px;width:0;background:linear-gradient(90deg,var(--gold-deep),var(--gold) 70%,var(--rosso))}
+.lap-ticks{position:absolute;inset:0;display:flex}
+.lap-ticks span{border-right:1px solid rgba(11,10,13,.9)}
+
+/* ---------- Journey ---------- */
+.journey{position:relative;z-index:5}
+.sector{position:relative;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.sector[data-s="1"]{min-height:140vh}
+.sector[data-s="2"]{min-height:245vh}
+.sector[data-s="3"]{min-height:105vh}
+.sector[data-s="4"]{min-height:90vh}
+.sector[data-s="5"]{min-height:140vh}
+.card{position:sticky;top:max(96px,16vh);width:min(460px,100%);padding:28px 28px 26px;
+  background:linear-gradient(160deg,rgba(22,20,26,.8),rgba(11,10,13,.7));
+  border:1px solid var(--line);border-radius:3px;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);
+  box-shadow:0 30px 80px rgba(0,0,0,.45)}
+.sector.right .card{margin-left:auto}
+.eyebrow{font-family:var(--wide);font-size:10px;letter-spacing:.3em;text-transform:uppercase;color:var(--gold);margin:0 0 14px}
+.card h2,.hero h1{font-family:var(--display);font-weight:400;line-height:1.08;text-wrap:balance;margin:0 0 14px}
+.card h2{font-size:clamp(28px,3.4vw,40px)}
+.card h2 em,.hero h1 em{font-style:italic;color:var(--gold)}
+.card p{margin:0;color:#ddd6cc;max-width:60ch}
+.card p+p{margin-top:10px}
+.telemetry{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin:20px 0 0;padding-top:16px;border-top:1px solid var(--line)}
+.telemetry div{min-width:0}
+.telemetry dt{font-family:var(--wide);font-size:8.5px;letter-spacing:.22em;text-transform:uppercase;color:var(--mist)}
+.telemetry dd{margin:4px 0 0;font-weight:600;font-size:15px;font-variant-numeric:tabular-nums}
+
+.hero{padding-top:max(120px,20vh)}
+.hero .card{top:max(96px,18vh);width:min(620px,100%);background:none;border-color:transparent;box-shadow:none;backdrop-filter:none;-webkit-backdrop-filter:none;padding-left:0;text-shadow:0 2px 24px rgba(0,0,0,.55)}
+.hero h1{font-size:clamp(42px,6.4vw,84px)}
+.hero p.lead{font-size:clamp(16px,1.6vw,19px);max-width:44ch;color:#ece5da}
+.actions{display:flex;flex-wrap:wrap;gap:12px;margin-top:26px}
+.btn{display:inline-flex;align-items:center;gap:10px;font-weight:600;font-size:15px;text-decoration:none;padding:14px 22px;border-radius:2px;border:1px solid var(--gold);transition:background .2s,color .2s;text-shadow:none}
+.btn.primary{background:var(--gold);color:var(--obsidian)}
+.btn.primary:hover{background:var(--ivory);border-color:var(--ivory)}
+.btn.ghost{color:var(--ivory);background:rgba(11,10,13,.45)}
+.btn.ghost:hover{border-color:var(--ivory)}
+.scroll-hint{display:flex;align-items:center;gap:10px;margin-top:34px;font-family:var(--wide);font-size:9.5px;letter-spacing:.3em;text-transform:uppercase;color:#cfc6bb}
+.scroll-hint::before{content:"";width:34px;height:1px;background:var(--gold)}
+
+/* ---------- Solid sections ---------- */
+.solid{position:relative;z-index:6;background:var(--obsidian)}
+.band{padding-block:clamp(72px,10vw,128px);padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));border-top:1px solid var(--line)}
+.wrap{max-width:1120px;margin:0 auto}
+.band h2{font-family:var(--display);font-weight:400;font-size:clamp(32px,4.4vw,56px);line-height:1.06;text-wrap:balance;margin:0 0 18px;max-width:18ch}
+.band h2 em{font-style:italic;color:var(--gold)}
+.band .intro{color:#cfc7bc;max-width:58ch;margin:0}
+.split{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.05fr);gap:clamp(32px,6vw,80px);align-items:start}
+@media (max-width:860px){.split{grid-template-columns:1fr}}
+
+.phone{background:var(--graphite);border:1px solid var(--line);border-radius:22px;padding:18px;max-width:440px;width:100%;justify-self:end}
+@media (max-width:860px){.phone{justify-self:stretch;max-width:none}}
+.phone-head{display:flex;align-items:center;gap:12px;padding:4px 6px 16px;border-bottom:1px solid var(--line)}
+.avatar{width:38px;height:38px;border-radius:50%;flex:none;background:radial-gradient(circle at 35% 35%,var(--gold),var(--gold-deep) 60%,#3b2c12);display:grid;place-items:center;font-family:var(--wide);font-size:10px;font-weight:700;color:var(--obsidian)}
+.phone-head strong{display:block;font-size:14px}
+.phone-head small{color:var(--mist);font-size:12px}
+.msgs{display:flex;flex-direction:column;gap:10px;padding:16px 4px 6px}
+.day{align-self:center;font-family:var(--wide);font-size:9px;letter-spacing:.24em;text-transform:uppercase;color:var(--mist);padding:4px 10px;border:1px solid var(--line);border-radius:20px}
+.msg{max-width:85%;padding:10px 13px;border-radius:14px;font-size:14px;line-height:1.5}
+.msg time{display:block;font-size:10.5px;color:var(--mist);margin-top:4px;font-variant-numeric:tabular-nums;text-align:right}
+.msg.in{align-self:flex-start;background:var(--stone);border-bottom-left-radius:4px}
+.msg.out{align-self:flex-end;background:#2a2213;border:1px solid rgba(210,173,102,.28);border-bottom-right-radius:4px}
+.sys{align-self:stretch;display:flex;gap:10px;align-items:flex-start;font-size:13px;color:#d9d2c8;background:rgba(95,191,138,.08);border:1px solid rgba(95,191,138,.3);padding:10px 12px;border-radius:10px}
+.sys::before{content:"";flex:none;width:8px;height:8px;margin-top:6px;border-radius:50%;background:var(--ok)}
+.note{font-size:12.5px;color:var(--mist);margin-top:14px}
+.points{list-style:none;padding:0;margin:28px 0 0;display:grid;gap:16px}
+.points li{display:grid;grid-template-columns:22px minmax(0,1fr);gap:12px;color:#ddd5ca}
+.points li::before{content:"";width:12px;height:12px;margin-top:7px;border:1px solid var(--gold);transform:rotate(45deg)}
+.points b{color:var(--ivory);font-weight:600}
+
+.steps{list-style:none;padding:0;margin:48px 0 0;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));border-top:1px solid var(--line)}
+@media (max-width:860px){.steps{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:520px){.steps{grid-template-columns:1fr}}
+.steps li{padding:26px 22px 8px 0;border-right:1px solid var(--line);min-width:0}
+.steps li:last-child{border-right:0}
+@media (max-width:860px){.steps li{border-right:0;border-bottom:1px solid var(--line);padding-bottom:22px}}
+.steps .num{font-family:var(--display);font-style:italic;font-size:44px;line-height:1;color:var(--gold)}
+.steps h3{font-size:17px;font-weight:600;margin:14px 0 6px}
+.steps p{margin:0;color:#c7bfb4;font-size:14.5px}
+
+.price-grid{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,.8fr);gap:20px;margin-top:44px}
+@media (max-width:860px){.price-grid{grid-template-columns:1fr}}
+.plan{border:1px solid var(--line);background:var(--graphite);padding:clamp(24px,4vw,40px);border-radius:3px;min-width:0}
+.plan h3{font-family:var(--wide);font-size:11px;letter-spacing:.3em;text-transform:uppercase;color:var(--gold);margin:0 0 18px}
+.amount{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+.amount strong{font-family:var(--display);font-weight:400;font-size:clamp(56px,7vw,84px);line-height:1;font-variant-numeric:tabular-nums}
+.amount span{color:var(--mist)}
+.setup{margin:10px 0 0;color:#cfc7bc}
+.includes{list-style:none;padding:0;margin:26px 0 0;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px 20px}
+@media (max-width:560px){.includes{grid-template-columns:1fr}}
+.includes li{display:grid;grid-template-columns:18px minmax(0,1fr);gap:10px;font-size:14.5px;color:#ddd5ca}
+.includes li::before{content:"";width:10px;height:6px;margin-top:8px;border-left:2px solid var(--gold);border-bottom:2px solid var(--gold);transform:rotate(-45deg)}
+.founder{border:1px solid rgba(200,22,47,.55);background:linear-gradient(170deg,rgba(200,22,47,.16),rgba(22,20,26,.9) 60%);padding:clamp(24px,4vw,40px);border-radius:3px;display:flex;flex-direction:column;gap:14px;min-width:0}
+.founder .tag{align-self:flex-start;font-family:var(--wide);font-size:9.5px;letter-spacing:.26em;text-transform:uppercase;background:var(--rosso);color:var(--ivory);padding:6px 10px;border-radius:2px}
+.founder strong{font-family:var(--display);font-weight:400;font-size:46px;line-height:1;font-variant-numeric:tabular-nums}
+.founder strong small{font-size:18px;font-family:var(--body);color:var(--mist)}
+.founder p{margin:0;color:#ddd5ca}
+.slots{display:flex;gap:8px;margin-top:4px}
+.slots i{width:34px;height:6px;background:var(--rosso);border-radius:1px}
+.fineprint{font-size:12.5px;color:var(--mist);margin-top:16px}
+
+.faq{margin-top:36px;border-top:1px solid var(--line)}
+.faq details{border-bottom:1px solid var(--line)}
+.faq summary{cursor:pointer;list-style:none;display:flex;justify-content:space-between;gap:20px;align-items:center;padding:22px 0;font-size:18px;font-weight:600}
+.faq summary::-webkit-details-marker{display:none}
+.faq summary::after{content:"+";font-family:var(--display);font-size:28px;line-height:1;color:var(--gold);transition:transform .2s}
+.faq details[open] summary::after{transform:rotate(45deg)}
+.faq details p{margin:0 0 22px;color:#cfc7bc;max-width:68ch}
+
+.demo-form{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;background:var(--graphite);border:1px solid var(--line);padding:clamp(22px,4vw,36px);border-radius:3px}
+@media (max-width:560px){.demo-form{grid-template-columns:1fr}}
+.field{display:flex;flex-direction:column;gap:6px;min-width:0}
+.field.full{grid-column:1/-1}
+.field label{font-family:var(--wide);font-size:9.5px;letter-spacing:.24em;text-transform:uppercase;color:var(--mist)}
+.field input,.field select{font:inherit;color:var(--ivory);background:var(--obsidian);border:1px solid rgba(241,235,225,.18);border-radius:2px;padding:12px 14px;min-width:0}
+.field input:focus,.field select:focus{border-color:var(--gold);outline:none}
+.form-actions{grid-column:1/-1;display:flex;flex-wrap:wrap;align-items:center;gap:16px;margin-top:4px}
+.form-actions button{cursor:pointer;font:inherit}
+.form-status{font-size:14px;color:var(--ok)}
+
+footer{padding-block:44px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));border-top:1px solid var(--line);color:var(--mist);font-size:13px;position:relative;z-index:6;background:var(--obsidian)}
+footer .wrap{display:flex;flex-wrap:wrap;justify-content:space-between;gap:16px 40px}
+footer p{margin:0;max-width:62ch}
+footer .brand{color:var(--ivory);font-family:var(--wide);font-size:11px;letter-spacing:.3em}
+
+@media (max-width:700px){
+  #shade,body.shade-right #shade{background:linear-gradient(0deg,rgba(8,7,10,.85) 0%,rgba(8,7,10,.35) 45%,rgba(8,7,10,0) 70%),linear-gradient(180deg,rgba(8,7,10,.6) 0%,rgba(8,7,10,0) 22%)}
+  .sector .card{top:auto;bottom:24px;margin-top:52vh}
+  .sector.hero .card{margin-top:0;top:max(84px,12vh);bottom:auto}
+  .sector.hero{padding-top:max(96px,14vh)}
+  .sector-label{display:none}
+  .card{padding:22px 20px}
+  .hero .card{padding-left:0}
+}
+@media (max-width:420px){.hud-cta{padding:8px 12px}.wordmark{letter-spacing:.22em;font-size:11px}}
+</style>
+</head>
+<body>
+
+
+<div id="stage" aria-hidden="true"><canvas id="film"></canvas></div>
+<div id="shade" aria-hidden="true"></div>
+<div class="loader" id="loader" aria-hidden="true">Cargando recorrido · <span id="loadPct">0</span>%</div>
+
+<header class="hud" id="hud">
+  <a class="wordmark" href="#top" aria-label="Supercar Voice AI, inicio">Supercar <b>Voice</b> AI</a>
+  <div class="hud-right">
+    <span class="sector-label" id="sectorLabel">Sector <span>1/5</span> · La llegada</span>
+    <a class="hud-cta" href="#demo">Reservar demo</a>
+  </div>
+</header>
+<div class="lap" id="lap" aria-hidden="true"><i id="lapBar"></i><div class="lap-ticks"><span style="flex:20"></span><span style="flex:35"></span><span style="flex:15"></span><span style="flex:10"></span><span style="flex:20"></span></div></div>
+
+<main id="top">
+  <div class="journey" id="journey">
+
+    <section class="sector hero" data-s="1" aria-label="Inicio">
+      <div class="card">
+        <p class="eyebrow">Asistente de IA para concesionarios de lujo</p>
+        <h1>La voz de su concesionario. <em>A cualquier hora.</em></h1>
+        <p class="lead">Supercar Voice AI atiende a sus clientes por WhatsApp, web y teléfono las 24 horas, responde sobre su stock y agenda pruebas de conducción. Sus vendedores solo reciben clientes listos para comprar.</p>
+        <div class="actions">
+          <a class="btn primary" href="#demo">Reservar una demo de 15 min</a>
+          <a class="btn ghost" href="#llamada">Ver una conversación</a>
+        </div>
+        <p class="scroll-hint">Haga scroll para entrar en el showroom</p>
+      </div>
+    </section>
+
+    <section class="sector right" data-s="2" aria-labelledby="s2t">
+      <div class="card">
+        <p class="eyebrow">Sector 2 · La sala</p>
+        <h2 id="s2t">Su cliente escribe a las 23:07. <em>¿Quién le contesta?</em></h2>
+        <p>Quien busca un coche de 200.000 € escribe cuando tiene tiempo: de noche, en fin de semana, desde otro país. Si nadie responde, consulta el mismo modelo en el concesionario de al lado.</p>
+        <dl class="telemetry">
+          <div><dt>Horario</dt><dd>24/7</dd></div>
+          <div><dt>Canales</dt><dd>3</dd></div>
+          <div><dt>Respuesta</dt><dd>Segundos</dd></div>
+        </dl>
+      </div>
+    </section>
+
+    <section class="sector" data-s="3" aria-labelledby="s3t">
+      <div class="card">
+        <p class="eyebrow">Sector 3 · La voz</p>
+        <h2 id="s3t">Conoce su stock. <em>Habla su idioma.</em></h2>
+        <p>El asistente se presenta como asistente de IA de su concesionario, responde sobre cada coche disponible (precio, kilómetros, equipamiento) y cambia de idioma según el cliente: español, inglés, alemán, francés y más.</p>
+        <p>Cuando una pregunta no tiene respuesta segura, no inventa: pasa la conversación a su equipo.</p>
+      </div>
+    </section>
+
+    <section class="sector right" data-s="4" aria-labelledby="s4t">
+      <div class="card">
+        <p class="eyebrow">Sector 4 · La cita</p>
+        <h2 id="s4t">De un mensaje <em>a una prueba de conducción.</em></h2>
+        <p>Detecta al comprador real, propone fecha y hora, y deja la cita en el calendario del concesionario. El vendedor recibe un WhatsApp con el resumen: quién es, qué coche quiere y cuándo viene.</p>
+        <dl class="telemetry">
+          <div><dt>Agenda</dt><dd>Su calendario</dd></div>
+          <div><dt>Aviso</dt><dd>WhatsApp</dd></div>
+          <div><dt>Resumen</dt><dd>1 frase</dd></div>
+        </dl>
+      </div>
+    </section>
+
+    <section class="sector" data-s="5" aria-labelledby="s5t">
+      <div class="card">
+        <p class="eyebrow">Sector 5 · La terraza</p>
+        <h2 id="s5t">Usted cierra la venta. <em>Nosotros abrimos la puerta.</em></h2>
+        <p>Lo instalamos y configuramos nosotros, con su stock, su tono y sus horarios. Usted no cambia su web ni contrata a nadie.</p>
+        <div class="actions"><a class="btn primary" href="#demo">Reservar una demo</a><a class="btn ghost" href="#precio">Ver precio</a></div>
+      </div>
+    </section>
+  </div>
+
+  <div class="solid">
+    <section class="band" id="llamada" aria-labelledby="chatT">
+      <div class="wrap split">
+        <div>
+          <p class="eyebrow">Conversación de ejemplo</p>
+          <h2 id="chatT">Domingo, 23:07. <em>Prueba agendada.</em></h2>
+          <p class="intro">Así atiende el asistente a un comprador internacional en el showroom que acaba de recorrer.</p>
+          <ul class="points">
+            <li><span><b>Se presenta como IA.</b> Siempre dice que es un asistente de inteligencia artificial.</span></li>
+            <li><span><b>Responde en el idioma del cliente.</b> Aquí, en inglés, sin que nadie lo configure.</span></li>
+            <li><span><b>Cierra con una cita, no con un "le llamamos".</b> Fecha, hora y vendedor asignado.</span></li>
+          </ul>
+        </div>
+        <div class="phone" role="figure" aria-label="Conversación de ejemplo por WhatsApp">
+          <div class="phone-head">
+            <span class="avatar" aria-hidden="true">SV</span>
+            <div><strong>Supercar Voice AI · Showroom</strong><small>Asistente de IA · en línea</small></div>
+          </div>
+          <div class="msgs">
+            <span class="day">Domingo</span>
+            <div class="msg in">Hi, is the red V12 coupé still available? Could I see it this week?<time>23:07</time></div>
+            <div class="msg out">Good evening! I'm Sofía, the AI assistant at the showroom. Yes, the red V12 coupé (ref. SV-0412) is available. Would Monday at 10:30 or Tuesday at 17:00 suit you for a viewing and test drive?<time>23:07</time></div>
+            <div class="msg in">Monday 10:30 works.<time>23:08</time></div>
+            <div class="msg out">Perfect, Monday at 10:30 is booked. May I have your name and phone number? Javier, your sales advisor, will meet you at the entrance.<time>23:08</time></div>
+            <div class="sys">Javier recibe un WhatsApp con el resumen y la cita aparece en el calendario del concesionario.</div>
+          </div>
+          <p class="note">Ejemplo ilustrativo.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="band" aria-labelledby="howT">
+      <div class="wrap">
+        <p class="eyebrow">Instalación</p>
+        <h2 id="howT">Cuatro pasos. <em>Los hacemos nosotros.</em></h2>
+        <ol class="steps">
+          <li><span class="num">1</span><h3>Conectamos su stock</h3><p>Una hoja con sus coches, precios, kilómetros y fotos. Usted la actualiza y el asistente la lee al momento.</p></li>
+          <li><span class="num">2</span><h3>Le damos su voz</h3><p>Nombre, tono y forma de hablar de su concesionario, y las respuestas a las preguntas que más le hacen.</p></li>
+          <li><span class="num">3</span><h3>Abrimos los canales</h3><p>WhatsApp, el chat de su web y su teléfono, conectados con su calendario.</p></li>
+          <li><span class="num">4</span><h3>Su equipo vende</h3><p>Cada cita llega con resumen al vendedor. Cada mes, un informe de conversaciones y citas.</p></li>
+        </ol>
+      </div>
+    </section>
+
+    <section class="band" id="precio" aria-labelledby="priceT">
+      <div class="wrap">
+        <p class="eyebrow">Precio</p>
+        <h2 id="priceT">Un solo plan. <em>Menos que una comisión.</em></h2>
+        <p class="intro">Si el asistente le trae una sola venta más al año, ya se ha pagado.</p>
+        <div class="price-grid">
+          <article class="plan" aria-labelledby="planT">
+            <h3 id="planT">Plan Concesionario</h3>
+            <div class="amount"><strong>490 €</strong><span>al mes</span></div>
+            <p class="setup">+ 490 € de instalación, una sola vez.</p>
+            <ul class="includes">
+              <li>Asistente 24/7 en WhatsApp, web y teléfono</li>
+              <li>Respuestas sobre su stock real</li>
+              <li>Varios idiomas según el cliente</li>
+              <li>Pruebas de conducción en su calendario</li>
+              <li>Aviso al vendedor con resumen</li>
+              <li>Informe mensual y ajustes incluidos</li>
+            </ul>
+          </article>
+          <aside class="founder" aria-labelledby="founderT">
+            <span class="tag">Precio fundador</span>
+            <strong id="founderT">290 € <small>al mes</small></strong>
+            <p>Para los 3 primeros concesionarios: instalación incluida y el precio fundador se mantiene mientras sigan con nosotros.</p>
+            <div class="slots" aria-label="3 plazas disponibles"><i></i><i></i><i></i></div>
+            <a class="btn primary" href="#demo" style="align-self:flex-start;margin-top:6px">Reservar una plaza</a>
+          </aside>
+        </div>
+        <p class="fineprint">Precios sin IVA. Sin permanencia: puede cancelar con un mes de aviso.</p>
+      </div>
+    </section>
+
+    <section class="band" aria-labelledby="faqT">
+      <div class="wrap">
+        <p class="eyebrow">Preguntas frecuentes</p>
+        <h2 id="faqT">Lo que nos preguntan <em>los dueños.</em></h2>
+        <div class="faq">
+          <details><summary>¿El cliente sabe que habla con una IA?</summary><p>Sí. El asistente se presenta siempre como asistente de inteligencia artificial de su concesionario. Es lo correcto y además lo exige la normativa europea.</p></details>
+          <details><summary>¿Qué pasa si le preguntan algo que no sabe?</summary><p>No inventa. Le dice al cliente que un asesor le contestará y le pasa la conversación a su equipo con todo el contexto.</p></details>
+          <details><summary>¿Tengo que cambiar mi web o mi número de teléfono?</summary><p>No. Añadimos el chat a la web que ya tiene y conectamos su WhatsApp y su línea actuales.</p></details>
+          <details><summary>¿Cuánto tarda en estar funcionando?</summary><p>Depende de cómo tenga hoy su stock y sus canales. En la demo de 15 minutos le damos una fecha concreta para su concesionario.</p></details>
+        </div>
+      </div>
+    </section>
+
+    <section class="band" id="demo" aria-labelledby="demoT">
+      <div class="wrap split">
+        <div>
+          <p class="eyebrow">Demo de 15 minutos</p>
+          <h2 id="demoT">Escuche cómo atendería <em>a sus clientes.</em></h2>
+          <p class="intro">Le enseñamos el asistente funcionando con coches de su propio stock. Sin compromiso.</p>
+        </div>
+        <form class="demo-form" id="demoForm" novalidate>
+          <div class="field"><label for="f-name">Nombre</label><input id="f-name" name="name" autocomplete="name" placeholder="Carlos Martín" required></div>
+          <div class="field"><label for="f-dealer">Concesionario</label><input id="f-dealer" name="dealer" placeholder="Nombre del concesionario" required></div>
+          <div class="field"><label for="f-contact">Teléfono o email</label><input id="f-contact" name="contact" placeholder="600 000 000" required></div>
+          <div class="field"><label for="f-stock">Coches en stock</label>
+            <select id="f-stock" name="stock"><option>Menos de 20</option><option selected>20 a 60</option><option>Más de 60</option></select></div>
+          <div class="field full"><label for="f-city">Ciudad</label><input id="f-city" name="city" placeholder="Marbella"></div>
+          <div class="form-actions">
+            <button class="btn primary" type="submit">Solicitar demo</button>
+            <span class="form-status" id="formStatus" role="status" aria-live="polite"></span>
+          </div>
+        </form>
+      </div>
+    </section>
+  </div>
+</main>
+
+<footer>
+  <div class="wrap">
+    <p><span class="brand">SUPERCAR VOICE AI</span><br>supercarvoice.ai</p>
+    <p>El showroom del recorrido es una recreación generada con IA para esta demostración.</p>
+  </div>
+</footer>
+
+<script>
+(function(){
+  "use strict";
+  var FRAMES=236, PATH="f/", EXT=".jpg";
+  var canvas=document.getElementById("film"),ctx=canvas.getContext("2d");
+  var journey=document.getElementById("journey"),lapBar=document.getElementById("lapBar"),lap=document.getElementById("lap");
+  var hud=document.getElementById("hud"),sectorLabel=document.getElementById("sectorLabel");
+  var loader=document.getElementById("loader"),loadPct=document.getElementById("loadPct");
+
+  /* form (sample) */
+  var form=document.getElementById("demoForm"),status=document.getElementById("formStatus");
+  form.addEventListener("submit",function(e){
+    e.preventDefault();
+    var missing=[].filter.call(form.querySelectorAll("[required]"),function(i){return !i.value.trim();});
+    if(missing.length){status.style.color="var(--rosso)";status.textContent="Rellene nombre, concesionario y contacto para solicitar la demo.";missing[0].focus();return;}
+    status.style.color="var(--ok)";
+    status.textContent="Formulario de muestra: en la versión publicada, esta solicitud llegará al momento por n8n.";
+  });
+
+  /* frames: load key frames first, then fill the gaps */
+  var imgs=new Array(FRAMES),loaded=new Array(FRAMES),count=0;
+  function name(i){return PATH+String(i+1).padStart(3,"0")+EXT;}
+  var order=[],seen={};
+  [24,8,4,2,1].forEach(function(step){for(var i=0;i<FRAMES;i+=step){if(!seen[i]){seen[i]=1;order.push(i);}}});
+  if(!seen[FRAMES-1])order.push(FRAMES-1);
+  var queue=order.slice(),active=0,MAX=6;
+  function pump(){
+    while(active<MAX&&queue.length){
+      (function(i){
+        active++;var im=new Image();im.decoding="async";
+        im.onload=function(){loaded[i]=true;count++;active--;loadPct.textContent=Math.round(count/FRAMES*100);if(count===FRAMES)loader.classList.add("done");needsDraw=true;pump();};
+        im.onerror=function(){active--;pump();};
+        im.src=name(i);imgs[i]=im;
+      })(queue.shift());
+    }
+  }
+  pump();
+
+  function nearest(i){
+    if(loaded[i])return i;
+    for(var d=1;d<FRAMES;d++){if(i-d>=0&&loaded[i-d])return i-d;if(i+d<FRAMES&&loaded[i+d])return i+d;}
+    return -1;
+  }
+
+  /* canvas sizing (cover) */
+  var W=0,H=0,dpr=1;
+  function size(){
+    dpr=Math.min(window.devicePixelRatio||1,2);
+    W=canvas.clientWidth;H=canvas.clientHeight;
+    canvas.width=Math.round(W*dpr);canvas.height=Math.round(H*dpr);
+    needsDraw=true;
+  }
+  function draw(i){
+    var k=nearest(i);if(k<0)return;
+    var im=imgs[k],iw=im.naturalWidth,ih=im.naturalHeight;
+    var s=Math.max(canvas.width/iw,canvas.height/ih),dw=iw*s,dh=ih*s;
+    ctx.drawImage(im,(canvas.width-dw)/2,(canvas.height-dh)/2,dw,dh);
+  }
+
+  /* scroll -> frame */
+  var sectors=[{end:.20,name:"La llegada",side:"left"},{end:.55,name:"La sala",side:"right"},{end:.70,name:"La voz",side:"left"},{end:.80,name:"La cita",side:"right"},{end:1.01,name:"La terraza",side:"left"}];
+  var target=0,current=0,lastSector=-1,lastFrame=-1,needsDraw=true;
+  function readScroll(){
+    var top=journey.offsetTop,h=journey.offsetHeight-window.innerHeight;
+    target=Math.min(1,Math.max(0,(window.scrollY-top)/Math.max(1,h)));
+    var past=window.scrollY>top+journey.offsetHeight-window.innerHeight*.6;
+    hud.style.opacity=past?"0":"1";hud.style.pointerEvents=past?"none":"auto";lap.style.opacity=past?"0":"1";
+  }
+  window.addEventListener("scroll",readScroll,{passive:true});
+  window.addEventListener("resize",function(){size();readScroll();});
+  var reduce=window.matchMedia&&window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  function tick(){
+    current+=(target-current)*(reduce?1:.14);
+    if(Math.abs(target-current)<.0004)current=target;
+    lapBar.style.width=(current*100).toFixed(2)+"%";
+    var si=0;while(si<sectors.length-1&&current>sectors[si].end)si++;
+    if(si!==lastSector){lastSector=si;sectorLabel.innerHTML="Sector <span>"+(si+1)+"/5</span> · "+sectors[si].name;document.body.classList.toggle("shade-right",sectors[si].side==="right");}
+    var f=Math.min(FRAMES-1,Math.round(current*(FRAMES-1)));
+    if(f!==lastFrame||needsDraw){draw(f);lastFrame=f;needsDraw=false;}
+    requestAnimationFrame(tick);
+  }
+  size();readScroll();requestAnimationFrame(tick);
+})();
+</script>
+
+</body>
+</html>
